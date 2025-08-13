@@ -1,15 +1,30 @@
-const products=require('../models/products');
+const Products = require('../models/products');
 
 // get all products
-const getAllProducts=async (req,res)=>{
+const getSelectedProducts = async (req, res) => {
     try {
-        const prodcuts=await products.find({});
-        res.status(200).json(prodcuts);
-    }
-    catch(err) {
-        console.log(err);
-        res.status(500).json({message: 'Internal Server Error'});
+        const { searchTerm, category, minPrice, maxPrice } = req.query;
+
+        const query = {};
+
+        if (searchTerm) {
+            query.name = { $regex: searchTerm, $options: 'i' };
+        }
+        if (category) {
+            query.category = category;
+        }
+        if (minPrice || maxPrice) {
+            query.price = {};
+            if (minPrice) query.price.$gte = parseFloat(minPrice);
+            if (maxPrice) query.price.$lte = parseFloat(maxPrice);
+        }
+
+        const products = await Products.find(query).limit(1);
+        res.json(products);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 }
 
-module.exports= getAllProducts;
+module.exports = getSelectedProducts;

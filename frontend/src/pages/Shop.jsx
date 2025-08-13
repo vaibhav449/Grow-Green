@@ -1,105 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Grid, List, Loader2 } from 'lucide-react';
-import { getAllProducts} from '../services/product';
+import { getSelectedProducts} from '../services/product';
 // Import the ProductCard component we created
-const ProductCard = ({ product }) => {
-  const {
-    name,
-    description,
-    price,
-    imageUrl,
-    category,
-    stock,
-    _id
-  } = product;
-
-  const isOutOfStock = stock === 0;
-
-  const handleAddToCart = (e) => {
-    e.preventDefault();
-    if (!isOutOfStock) {
-      console.log('Adding to cart:', product);
-    }
-  };
-
-  const handleViewDetails = (e) => {
-    e.preventDefault();
-    console.log('Viewing product:', _id);
-  };
-
-  const truncateDescription = (desc, maxLength = 80) => {
-    return desc.length > maxLength ? desc.substring(0, maxLength) + '...' : desc;
-  };
-
-  return (
-    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
-      <div className="relative h-48 overflow-hidden">
-        <img
-          src={imageUrl}
-          alt={name}
-          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-          onError={(e) => {
-            e.target.src = 'https://via.placeholder.com/400x300?text=Product+Image';
-          }}
-        />
-        {isOutOfStock && (
-          <div className="absolute inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
-            <span className="text-white font-semibold bg-red-600 px-3 py-1 rounded">
-              Out of Stock
-            </span>
-          </div>
-        )}
-        <div className="absolute top-2 right-2 bg-blue-600 text-white px-2 py-1 rounded text-xs font-semibold">
-          {category}
-        </div>
-      </div>
-
-      <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">
-          {name}
-        </h3>
-        
-        <p className="text-gray-600 text-sm mb-3">
-          {truncateDescription(description)}
-        </p>
-
-        <div className="flex justify-between items-center mb-4">
-          <span className="text-2xl font-bold text-green-600">
-            ${price.toFixed(2)}
-          </span>
-          <div className="flex items-center text-sm text-gray-500">
-            <span>{stock} left</span>
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          <button
-            onClick={handleViewDetails}
-            className="flex-1 bg-gray-100 text-gray-800 px-4 py-2 rounded hover:bg-gray-200 transition-colors duration-200"
-          >
-            View
-          </button>
-          <button
-            onClick={handleAddToCart}
-            disabled={isOutOfStock}
-            className={`flex-1 px-4 py-2 rounded transition-colors duration-200 ${
-              isOutOfStock
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
-          >
-            {isOutOfStock ? 'Unavailable' : 'Add to Cart'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+import ProductCard from '../components/Product'
 
 const ShowAllProducts = () => {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -107,18 +15,48 @@ const ShowAllProducts = () => {
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [viewMode, setViewMode] = useState('grid');
 
- 
+  async function  handleSearch () {
+      const searchObj={
+        searchTerm: searchTerm,
+        selectedCategory: selectedCategory,
+        priceRange: priceRange,
+        sortBy: sortBy
+      }
+      try {
+        setLoading(true);
+        const response= await getSelectedProducts(searchObj);
+        console.log('Search response:', response);
+        if (!response) {
+          throw new Error('No products found');
+        }
+        setProducts(response);
+        setFilteredProducts(response);
+        setError('');
+      } catch (err) {
+        setError('Failed to fetch products');
+        console.error('Error fetching products:', err);
+      }finally{
+        setLoading(false);
+      }
+      
+  };
 
   // Simulate API call
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await getAllProducts();
-        if (!response || !response.data) {
+        setLoading(true);
+        const response = await getSelectedProducts({
+        searchTerm: searchTerm,
+        selectedCategory: selectedCategory,
+        priceRange: priceRange,
+        sortBy: sortBy
+      });
+        console.log('Fetched products:', response);
+        if (!response) {
           throw new Error('No products found');
         }
         setProducts(response);
-        setFilteredProducts(response);
       } catch (err) {
         setError('Failed to fetch products');
         console.error('Error fetching products:', err);
@@ -158,6 +96,7 @@ const ShowAllProducts = () => {
       }
     });
 
+    {filtered.length === 0 ? handleSearch() : null}
     setFilteredProducts(filtered);
   }, [products, searchTerm, selectedCategory, sortBy, priceRange]);
 
@@ -209,20 +148,21 @@ const ShowAllProducts = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className=" mx-auto w-400 px-4 sm:px-6 lg:px-8 py-8">
         {/* Filters and Search */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Search */}
-            <div className="relative">
+            <div className="relative  flex items-center rounded-md">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <input
+              <input 
                 type="text"
                 placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500  "
               />
+              <button onClick={handleSearch} className='bg-blue-600 rounded-md p-2 m-1 text-white'>Search</button>
             </div>
 
             {/* Category Filter */}

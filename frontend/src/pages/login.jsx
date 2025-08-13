@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // 1. Import useNavigate
 import { login } from '../services/user'; // Import the login function from user service
-import { loginSuccess } from '../redux/store/slices/authSlice';
-import { useDispatch } from 'react-redux';
+import { loginSuccess, selectUserRole } from '../redux/store/slices/authSlice';
+import { useDispatch ,useSelector} from 'react-redux';
 
 // --- Login Component ---
 // This component handles user login and navigates to a different page on success.
@@ -12,6 +12,7 @@ export default function Login() {
     const [error, setError] = useState('');
     const navigate = useNavigate(); // 2. Initialize the navigate function
     const dispatch=useDispatch();
+    const userRole= useSelector(selectUserRole);
 
     // Handles the form submission
     const handleSubmit = async (e) => {
@@ -27,8 +28,9 @@ export default function Login() {
         console.log("response", response.data);
         console.log("response", typeof response.data);
         dispatch(loginSuccess(response.data));
-        // Dispatch the login success action with the token
-        navigate('/adminHome'); // You can change '/home' to your desired route, e.g., '/dashboard'
+        {userRole === 'admin' ?
+            navigate('/adminHome') :
+            navigate('/')}
     };
 
     return (
