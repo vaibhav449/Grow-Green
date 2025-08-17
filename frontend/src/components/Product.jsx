@@ -1,7 +1,12 @@
 import React from 'react';
 import { ShoppingCart, Eye, Package } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { addItem } from '../redux/store/slices/cart/cartSlice';
+import { useNavigate } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
   const {
     name,
     description,
@@ -17,15 +22,20 @@ const ProductCard = ({ product }) => {
   const handleAddToCart = (e) => {
     e.preventDefault();
     if (!isOutOfStock) {
-      console.log('Adding to cart:', product);
-      // Add your cart logic here
+     dispatch(addItem({
+      id: _id,
+      name: name,
+      price: price,
+      imageUrl: imageUrl,
+      description: description,
+      quantity: 1
+    }));
     }
   };
 
   const handleViewDetails = (e) => {
     e.preventDefault();
-    console.log('Viewing product:', _id);
-    // Add navigation to product details page
+    navigate(`/products/${_id}`);
   };
 
   const truncateDescription = (desc, maxLength = 80) => {

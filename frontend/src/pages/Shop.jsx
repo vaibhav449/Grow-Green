@@ -14,7 +14,7 @@ const ShowAllProducts = () => {
   const [sortBy, setSortBy] = useState('name');
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [viewMode, setViewMode] = useState('grid');
-
+  
   async function  handleSearch () {
       const searchObj={
         searchTerm: searchTerm,
@@ -41,7 +41,6 @@ const ShowAllProducts = () => {
       
   };
 
-  // Simulate API call
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -53,6 +52,8 @@ const ShowAllProducts = () => {
         sortBy: sortBy
       });
         console.log('Fetched products:', response);
+        //check type 
+        console.log('Type of response:', typeof response);
         if (!response) {
           throw new Error('No products found');
         }
@@ -260,5 +261,4 @@ const ShowAllProducts = () => {
     </div>
   );
 };
-
 export default ShowAllProducts;

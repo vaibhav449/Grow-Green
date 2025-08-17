@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { use, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaShoppingCart, FaUser, FaSearch, FaBars, FaTimes } from 'react-icons/fa';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectIsAuthenticated, selectUserRole, logout } from '../../redux/store/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import {selectCartCount} from '../../redux/store/slices/cart/cartSelector';
 const Header = () => {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dispatch = useDispatch();
@@ -14,6 +15,8 @@ const Header = () => {
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!isMobileMenuOpen);
   };
+  const noOfItems=useSelector(selectCartCount);
+  
 
   // Debug logging with useEffect to track changes
   useEffect(() => {
@@ -48,6 +51,7 @@ const Header = () => {
               <Link to="/adminHome" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">Admin Home</Link>
               : <Link to="/" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">Home</Link>
             }
+            
 
             {/* FIXED: Corrected shop logic too */}
             {userRole === "admin" ?
@@ -86,7 +90,7 @@ const Header = () => {
             <Link to="/cart" className="relative text-gray-600 hover:text-blue-500">
               <FaShoppingCart size={20} />
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                3
+               { noOfItems}
               </span>
             </Link>
             <div className="md:hidden">

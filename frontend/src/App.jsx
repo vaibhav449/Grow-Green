@@ -12,6 +12,7 @@ import Signup from './pages/SignUp'
 import AdminSignupPage from './pages/adminSignup'
 import AdminHome from './pages/adminHome';
 import AddProduct from './pages/AddProduct';
+import ViewProduct from './pages/ViewProduct';
 
 // Layout component to wrap all pages with Header and Footer
 function Layout() {
@@ -70,6 +71,10 @@ const router = createBrowserRouter([
       {
         path:"/admin/addProduct",
         element:<AddProduct/>
+      },
+      {
+        path:"/products/:id",
+        element:<ViewProduct/>
       }
     ]
   }
