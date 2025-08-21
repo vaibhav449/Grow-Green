@@ -1,4 +1,6 @@
-import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet, Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { selectIsAuthenticated, selectUserRole } from './redux/store/slices/authSlice';
 
 import Header from './components/commons/header';
 import Footer from './components/commons/footer';
@@ -13,6 +15,25 @@ import AdminSignupPage from './pages/adminSignup'
 import AdminHome from './pages/adminHome';
 import AddProduct from './pages/AddProduct';
 import ViewProduct from './pages/ViewProduct';
+
+// Protected route component for regular users
+const ProtectedUserRoute = ({ children }) => {
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const userRole = useSelector(selectUserRole);
+  
+  if (!isAuthenticated) {
+    // Not logged in, redirect to login page with return URL
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+  
+  if (userRole === 'admin') {
+    // Admin trying to access user route - redirect to admin home
+    return <Navigate to="/adminHome" replace />;
+  }
+  
+  // User is authenticated and not an admin
+  return children;
+};
 
 // Layout component to wrap all pages with Header and Footer
 function Layout() {
@@ -54,7 +75,11 @@ const router = createBrowserRouter([
       },
       {
         path: "/cart",
-        element: <Cart />
+        element: (
+          <ProtectedUserRoute>
+            <Cart />
+          </ProtectedUserRoute>
+        )
       },
       {
         path:"/signup",
@@ -81,12 +106,7 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  return (
-   
-    <RouterProvider router={router} />
-
-
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;

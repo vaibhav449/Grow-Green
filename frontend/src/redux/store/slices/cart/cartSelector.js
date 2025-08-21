@@ -9,12 +9,12 @@ export const selectCartItems = createSelector(
 
 export const selectCartCount = createSelector(
   [selectCartItems],
-  items => items.reduce((sum, it) => sum + it.quantity, 0)
+  items => items.reduce((sum, it) => sum + (it.quantity || it.qty || 1), 0)
 );
 
 export const selectCartSubtotal = createSelector(
   [selectCartItems],
-  items => items.reduce((sum, it) => sum + (Number(it.price) * it.quantity), 0)
+  items => items.reduce((sum, it) => sum + (Number(it.price) * (it.quantity || it.qty || 1)), 0)
 );
 
 // You can add tax, shipping calculations as their own selectors.

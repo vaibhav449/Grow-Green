@@ -1,82 +1,129 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { cartService } from '../../../../services/cart';
 
-// item shape we expect: { id, name, price, imageUrl, variant?, ... }
+// Async thunks
+export const fetchCart = createAsyncThunk(
+  'cart/fetchCart',
+  async (_, { rejectWithValue }) => {
+    try {
+      return await cartService.getCart();
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Failed to fetch cart');
+    }
+  }
+);
 
-const initialState = {
-  items: [], // each item: { id, name, price, quantity, ... }
-};
+export const addItem = createAsyncThunk(
+  'cart/addItem',
+  async (item, { rejectWithValue }) => {
+    try {
+      return await cartService.addItem(item);
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Failed to add item');
+    }
+  }
+);
 
-const findIndexById = (items, id) => items.findIndex(i => i.id === id);
+export const removeItem = createAsyncThunk(
+  'cart/removeItem',
+  async (id, { rejectWithValue }) => {
+    try {
+      await cartService.removeItem(id);
+      return id;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Failed to remove item');
+    }
+  }
+);
+
+export const clearCart = createAsyncThunk(
+  'cart/clearCart',
+  async (_, { rejectWithValue }) => {
+    try {
+      return await cartService.clearCart();
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Failed to clear cart');
+    }
+  }
+);
+
+
+export const updateItemQuantity = createAsyncThunk(
+  'cart/updateItemQuantity',
+  async ({ id, qty }, { rejectWithValue }) => {
+    try {
+      return await cartService.updateItemQuantity(id, qty);
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Failed to update quantity');
+    }
+  }
+);
+
+
 
 const cartSlice = createSlice({
   name: 'cart',
-  initialState,
+  initialState: {
+    items: [],
+    status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
+    error: null
+  },
   reducers: {
-    addItem(state, action) {
-      // payload: { id, name, price, ... , quantity: optional }
-      const payload = action.payload;
-      const qtyToAdd = payload.quantity ? Number(payload.quantity) : 1;
-      const idx = findIndexById(state.items, payload.id);
-      const imageUrl=payload.imageUrl || ''; // default to empty string if not provided
-      const description=payload.description || ''; // default to empty string if not provided
-      if (idx >= 0) {
-        // merge quantities
-        state.items[idx].quantity += qtyToAdd;
-      } else {
-        state.items.push({ ...payload, quantity: qtyToAdd, imageUrl, description });
+
+    getQuantity: (state, action) => {
+      const itemId = action.payload;
+      const idx = state.items.findIndex(item => item.id === itemId);
+      if (idx !== -1) {
+        return state.items[idx].quantity;
       }
-    },
-
-    removeItem(state, action) {
-      // payload: id
-      state.items = state.items.filter(i => i.id !== action.payload);
-    },
-
-    setItemQuantity(state, action) {
-      // payload: { id, quantity }
-      const { id, quantity } = action.payload;
-      const idx = findIndexById(state.items, id);
-      if (idx >= 0) {
-        state.items[idx].quantity = Math.max(0, Number(quantity));
-        // optionally remove if zero
-        if (state.items[idx].quantity === 0) {
-          state.items.splice(idx, 1);
-        }
-      }
-    },
-
-    increment(state, action) {
-      const idx = findIndexById(state.items, action.payload);
-      if (idx >= 0) state.items[idx].quantity += 1;
-    },
-
-    decrement(state, action) {
-      const idx = findIndexById(state.items, action.payload);
-      if (idx >= 0) {
-        state.items[idx].quantity -= 1;
-        if (state.items[idx].quantity <= 0) state.items.splice(idx, 1);
-      }
-    },
-
-    clearCart(state) {
-      state.items = [];
-    },
-
-    // hydrate from persisted storage (payload: { items: [...] })
-    loadCart(state, action) {
-      state.items = action.payload.items || [];
+      return 0;
     }
+  },
+  extraReducers: (builder) => {
+    builder
+      // Fetch cart
+      .addCase(fetchCart.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchCart.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.items = action.payload.items;
+      })
+      .addCase(fetchCart.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+
+      // Add item
+      .addCase(addItem.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(addItem.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        // Backend should return updated cart
+        state.items = action.payload.items;
+      })
+      .addCase(addItem.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+
+      // Remove item
+      .addCase(removeItem.fulfilled, (state, action) => {
+        state.items = state.items.filter(item => item.id !== action.payload);
+      })
+
+      // Update quantity
+      .addCase(updateItemQuantity.fulfilled, (state, action) => {
+        // Backend returns the whole cart with items array
+        state.items = action.payload.items;
+      })
+
+      .addCase(clearCart.fulfilled, (state, action) => {
+        state.items = [];
+      })
   }
 });
 
-export const {
-  addItem,
-  removeItem,
-  setItemQuantity,
-  increment,
-  decrement,
-  clearCart,
-  loadCart
-} = cartSlice.actions;
-
+export const { getQuantity } = cartSlice.actions;
 export default cartSlice.reducer;

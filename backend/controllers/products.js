@@ -19,7 +19,7 @@ const getSelectedProducts = async (req, res) => {
             if (maxPrice) query.price.$lte = parseFloat(maxPrice);
         }
 
-        const products = await Products.find(query).limit(1);
+        const products = await Products.find(query).limit(50);
         res.json(products);
     } catch (err) {
         console.error(err);

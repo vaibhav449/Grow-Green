@@ -5,8 +5,8 @@ import { addItem } from '../redux/store/slices/cart/cartSlice';
 import { useNavigate } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const {
     name,
     description,
@@ -22,14 +22,9 @@ const ProductCard = ({ product }) => {
   const handleAddToCart = (e) => {
     e.preventDefault();
     if (!isOutOfStock) {
-     dispatch(addItem({
-      id: _id,
-      name: name,
-      price: price,
-      imageUrl: imageUrl,
-      description: description,
-      quantity: 1
-    }));
+      dispatch(addItem({
+        p_id: _id,
+      }));
     }
   };
 
@@ -70,7 +65,7 @@ const ProductCard = ({ product }) => {
         <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
           {name}
         </h3>
-        
+
         <p className="text-gray-600 text-sm mb-3 line-clamp-2">
           {truncateDescription(description)}
         </p>
@@ -98,11 +93,10 @@ const ProductCard = ({ product }) => {
           <button
             onClick={handleAddToCart}
             disabled={isOutOfStock}
-            className={`flex-1 px-4 py-2 rounded flex items-center justify-center gap-2 transition-colors duration-200 ${
-              isOutOfStock
+            className={`flex-1 px-4 py-2 rounded flex items-center justify-center gap-2 transition-colors duration-200 ${isOutOfStock
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
+              }`}
           >
             <ShoppingCart size={16} />
             {isOutOfStock ? 'Unavailable' : 'Add to Cart'}
