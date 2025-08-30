@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { FaUpload, FaPlus, FaTimes } from 'react-icons/fa';
 import { addProduct } from '../services/admin';
-
-function AddProduct() {
+import { useEffect } from 'react';
+import { updateProduct } from '../services/admin';
+import { useNavigate } from 'react-router-dom';
+function AddProduct({ productData = null, isEditMode = false }) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -11,11 +13,23 @@ function AddProduct() {
     category: '',
     stock: ''
   });
-
+  const navigate=useNavigate();
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
-
+    // Populate form with existing data when editing
+    useEffect(() => {
+        if (isEditMode && productData) {
+            setFormData({
+                name: productData.name || '',
+                description: productData.description || '',
+                price: productData.price || '',
+                stock: productData.stock || '',
+                category: productData.category || '',
+                imageUrl: productData.imageUrl || ''
+            });
+        }
+    }, [isEditMode, productData]);
   // Common product categories
 const categories = [
   'Pantry & Groceries',
@@ -118,26 +132,34 @@ const categories = [
 
     try {
       // api call kroo
-      const response = await addProduct(formData);
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to add product');
-      }
-      // Reset form on success
-      setFormData({
-        name: '',
-        description: '',
-        price: '',
-        imageUrl: '',
-        category: '',
-        stock: ''
-      });
-      setPreviewImage(null);
+       if (isEditMode) {
+                // Update existing product
+                await updateProduct(productData._id, formData);
+                alert('Product updated successfully!');
+            }
+            else {
+              const response = await addProduct(formData);
+              if (!response.success) {
+                throw new Error(response.error || 'Failed to add product');
+              }
+              // Reset form on success
+              setFormData({
+                name: '',
+                description: '',
+                price: '',
+                imageUrl: '',
+                category: '',
+                stock: ''
+              });
+
+              alert('Product added successfully!');
+              setPreviewImage(null);
+            }
       
-      alert('Product added successfully!');
       
     } catch (error) {
-      console.error('Error adding product:', error);
-      alert('Failed to add product. Please try again.');
+      console.error('Error:', error);
+       alert(`Failed to ${isEditMode ? 'update' : 'add'} product`);
     } finally {
       setIsSubmitting(false);
     }
@@ -154,6 +176,7 @@ const categories = [
     });
     setErrors({});
     setPreviewImage(null);
+    navigate('/adminShop');
   };
 
   return (
@@ -351,12 +374,12 @@ const categories = [
                 {isSubmitting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Adding Product...
+                     {isEditMode ? 'Updating Product' : 'Adding Product'}
                   </>
                 ) : (
                   <>
                     <FaPlus className="mr-2" />
-                    Add Product
+                    {isEditMode ? 'Update Product' : 'Add Product'}
                   </>
                 )}
               </button>

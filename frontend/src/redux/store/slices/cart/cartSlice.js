@@ -110,7 +110,14 @@ const cartSlice = createSlice({
 
       // Remove item
       .addCase(removeItem.fulfilled, (state, action) => {
-        state.items = state.items.filter(item => item.id !== action.payload);
+        // Remove the item from state immediately
+        state.items = state.items.filter(item => {
+          const itemId = item.p_id || item._id || item.id;
+          return itemId !== action.payload; // action.payload is the removed item ID
+        });
+      })
+      .addCase(removeItem.rejected, (state, action) => {
+        state.error = action.payload;
       })
 
       // Update quantity

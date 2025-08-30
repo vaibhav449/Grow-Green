@@ -15,6 +15,8 @@ import AdminSignupPage from './pages/adminSignup'
 import AdminHome from './pages/adminHome';
 import AddProduct from './pages/AddProduct';
 import ViewProduct from './pages/ViewProduct';
+import MyProducts from './pages/MyProducts';
+import EditProductWrapper from './wrapper/EditProductWrapper';
 
 // Protected route component for regular users
 const ProtectedUserRoute = ({ children }) => {
@@ -100,6 +102,14 @@ const router = createBrowserRouter([
       {
         path:"/products/:id",
         element:<ViewProduct/>
+      },
+      {
+        path:'/adminShop',
+        element:<MyProducts/>
+      },
+      {
+        path:'/admin/editProduct/:id',
+        element:<EditProductWrapper/>
       }
     ]
   }
