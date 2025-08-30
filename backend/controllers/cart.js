@@ -162,6 +162,7 @@ const updateByQuantity = async (req, res) => {
 };
 const removeItem= async(req,res)=>{
   try {
+    console.log("delete req recached backend!!");
     const userRole = req.role;
     if (userRole === 'admin') {
       // return saying you cannot perform this action
@@ -170,13 +171,16 @@ const removeItem= async(req,res)=>{
     const userId = req.userId;
     const user = await User.findOne({ _id: userId });
     let cart = user.cart;
+    console.log("cart before deletion:", cart);
     const { id } = req.params;
-    const itemIndex = cart.findIndex(item => item.p_id === id);
+    const itemIndex = cart.findIndex(item => item.p_id?.toString() === id);
+    console.log("id: ",id);
+    console.log("itemIndex: ",itemIndex);
     if (itemIndex > -1) {
       // Item exists, remove it
       cart.splice(itemIndex, 1);
     }
-
+    console.log("cart after deletion : ", cart);
     await user.save();
     res.json({items:cart});
   } catch (err) {

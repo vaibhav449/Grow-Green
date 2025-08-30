@@ -55,7 +55,7 @@ const Header = () => {
 
             {/* FIXED: Corrected shop logic too */}
             {userRole === "admin" ?
-              <Link to="/shop" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">My Shop</Link>
+              <Link to="/adminShop" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">My Shop</Link>
               : <Link to="/shop" className="text-gray-600 hover:text-blue-500 transition-colors duration-200">Shop</Link>
             }
 
